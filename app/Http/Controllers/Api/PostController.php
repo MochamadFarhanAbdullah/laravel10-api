@@ -37,7 +37,7 @@ class PostController extends Controller
 
         // upload image
         $image = $request->file('image');
-        $image -> storeAs('public/posts', $image->hashName());
+        $image -> storeAs('public/storage/posts/', $image->hashName());
         
         if (!$request->has('content')) {
             return response()->json(['error' => 'Content is missing'], 400);
@@ -47,7 +47,7 @@ class PostController extends Controller
         $post = Post::create([
             'image' => $image->hashName(),
             'title' => $request->title,
-            'content' => $request->content, // rk eror bjir
+            'content' => $request->content, // rk eror bjir, tpi merah
         ]);
 
         // return response
@@ -83,10 +83,10 @@ class PostController extends Controller
         if($request->hasFile('image')){
             // upload image
             $image = $request->files('image');
-            $image-> storeAs('public/posts', $image->hashName());
+            $image-> storeAs('public/storage/posts/', $image->hashName());
 
             // delete old image
-            Storage::delete('public/posts/'. $post->image);
+            Storage::delete('public/storage/posts/'. basename($post->image));
 
             // update post with new image
             $post->update([
@@ -102,5 +102,18 @@ class PostController extends Controller
             ]);
         }
         return new PostResource(true,'Data Post Berhasil Dirubah', $post);
+    }
+
+    public function destroy($id)
+    {
+        //find post by id
+        $post = Post::find($id);
+        // delete image
+        Storage::delete('public/storage/posts/'. basename($post->image));
+        // delete post
+        $post->delete();
+
+        //return response
+        return new PostResource(true, 'Data Post Berhasil Dihapus', null);
     }
 }
